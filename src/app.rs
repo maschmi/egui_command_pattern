@@ -1,6 +1,6 @@
-use egui::{Context, Id, Ui, Window};
 use crate::command_handler::{Command, CommandHandler};
 use crate::window::create_window;
+use egui::{Context, Id, Ui, Window};
 
 pub struct CommandPatternApp {
     // Example stuff:
@@ -115,11 +115,13 @@ impl CommandPatternApp {
     }
 
     fn draw_windows(&mut self, ctx: &Context) {
-        self.windows.clone().iter().for_each(|content| {
+        let mut callback = |cmd: Command| self.handle_command(cmd);
+        let windows_to_draw = self.windows.clone();
+        windows_to_draw.iter().for_each(|content| {
             create_window(
-                |cmd| self.handle_command(cmd),
+                &mut callback,
                 ctx,
-                content
+                content,
             );
         });
     }

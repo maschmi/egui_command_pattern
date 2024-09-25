@@ -3,7 +3,7 @@ use crate::command_handler::Command;
 use egui::{Context, Id, Ui, Window};
 
 
-pub(crate) fn create_window<F>(cmd_callback: F, ctx: &Context, content: &WindowContent)
+pub(crate) fn create_window<F>(cmd_callback: &mut F, ctx: &Context, content: &WindowContent)
 where
     F: FnMut(Command),
 {
@@ -16,7 +16,7 @@ where
         });
 }
 
-fn add_close_button<F>(mut cmd_callback: F, content: &WindowContent, ui: &mut Ui)
+fn add_close_button<F>(cmd_callback: &mut F, content: &WindowContent, ui: &mut Ui)
 where
     F: FnMut(Command),
 {
@@ -25,7 +25,7 @@ where
     }
 }
 
-fn add_noop_button<F>(mut cmd_callback: F, ui: &mut Ui)
+fn add_noop_button<F>(cmd_callback: &mut F, ui: &mut Ui)
 where
     F: FnMut(Command),
 {
