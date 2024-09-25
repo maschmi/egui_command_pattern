@@ -6,6 +6,7 @@ pub(crate) enum Command {
     IncrementByButton,
     CreateNewWindow(WindowContent),
     CloseWindow(usize),
+    NoOP,
 }
 
 pub(crate) trait CommandHandler {
@@ -30,6 +31,9 @@ impl CommandHandler for CommandPatternApp {
             Command::CloseWindow(id) => {
                 dbg!("Handle close window command");
                 self.windows.retain(|w| &w.id != &id);
+            }
+            Command::NoOP => {
+                dbg!("Handle noop command");
             }
         }
     }

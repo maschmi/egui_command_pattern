@@ -2,5 +2,6 @@
 
 mod app;
 mod command_handler;
+mod window;
 
 pub use app::CommandPatternApp;
