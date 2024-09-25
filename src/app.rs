@@ -1,10 +1,16 @@
-use egui::{Context, Ui};
+use egui::{Context, Id, Ui, Window};
 
 pub struct CommandPatternApp {
     // Example stuff:
     label: String,
     correct_answer: Option<bool>,
     value: f32,
+    windows: Vec<WindowContent>, // this is not optimal, but better understandable then a map or a btree
+}
+#[derive(Clone)]
+struct WindowContent {
+    id: usize,
+    content: String,
 }
 
 impl Default for CommandPatternApp {
@@ -14,9 +20,21 @@ impl Default for CommandPatternApp {
             label: "Hello World!".to_owned(),
             correct_answer: None,
             value: 2.7,
+            windows: vec![],
         }
     }
 }
+
+
+impl WindowContent {
+    fn create(id: usize) -> Self {
+        WindowContent {
+            id,
+            content: format!("I'm a window and my id is {}", id),
+        }
+    }
+}
+
 
 impl CommandPatternApp {
     /// Called once before the first frame.
@@ -57,16 +75,8 @@ impl CommandPatternApp {
                     self.correct_answer = Some(10 == self.label.parse::<i32>().unwrap_or(0));
                 };
             });
-            if let Some(answer) = self.correct_answer {
-                let label_text = if answer {
-                    "Your answer was correct."
-                } else {
-                    "Your answer was wrong."
-                };
-                ui.label(label_text);
-            } else {
-                ui.label("");
-            }
+
+            self.display_check_result(ui);
 
             ui.add_space(10.0);
 
@@ -77,7 +87,42 @@ impl CommandPatternApp {
 
             ui.separator();
 
+            if ui.button("Add window").clicked() {
+                let content = WindowContent::create(
+                    self.windows.len(),
+                );
+                self.windows.push(content.clone());
+            }
+
+            self.draw_windows(ctx);
+
             Self::add_footer(ui);
+        });
+    }
+
+    fn display_check_result(&mut self, ui: &mut Ui) {
+        if let Some(answer) = self.correct_answer {
+            let label_text = if answer {
+                "Your answer was correct."
+            } else {
+                "Your answer was wrong."
+            };
+            ui.label(label_text);
+        } else {
+            ui.label("");
+        }
+    }
+
+    fn draw_windows(&mut self, ctx: &Context) {
+        self.windows.clone().iter().for_each(|content| {
+            Window::new("I'm a window")
+                .id(Id::new(content.id)) // needed as the title is the same
+                .show(ctx, |ui| {
+                    ui.label(content.content.to_string());
+                    if ui.button("Close").clicked() {
+                        self.windows.retain(|w| &w.id != &content.id);
+                    }
+                });
         });
     }
 
@@ -90,7 +135,6 @@ impl CommandPatternApp {
 }
 
 impl eframe::App for CommandPatternApp {
-
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         Self::create_top_menu(ctx);

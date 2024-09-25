@@ -20,7 +20,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "eframe template",
         native_options,
-        Box::new(|cc| Ok(Box::new(egui_command_pattern::CommandPatternApp::new()))),
+        Box::new(|_| Ok(Box::new(egui_command_pattern::CommandPatternApp::new()))),
     )
 }
 
