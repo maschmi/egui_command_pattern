@@ -1,51 +1,30 @@
-/// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct TemplateApp {
+use egui::{Context, Ui};
+
+pub struct CommandPatternApp {
     // Example stuff:
     label: String,
-
-    #[serde(skip)] // This how you opt-out of serialization of a field
+    correct_answer: Option<bool>,
     value: f32,
 }
 
-impl Default for TemplateApp {
+impl Default for CommandPatternApp {
     fn default() -> Self {
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
+            correct_answer: None,
             value: 2.7,
         }
     }
 }
 
-impl TemplateApp {
+impl CommandPatternApp {
     /// Called once before the first frame.
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // This is also where you can customize the look and feel of egui using
-        // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-
-        // Load previous app state (if any).
-        // Note that you must enable the `persistence` feature for this to work.
-        if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        }
-
+    pub fn new() -> Self {
         Default::default()
     }
-}
 
-impl eframe::App for TemplateApp {
-    /// Called by the frame work to save state before shutdown.
-    fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        eframe::set_value(storage, eframe::APP_KEY, self);
-    }
-
-    /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
-        // For inspiration and more examples, go to https://emilk.github.io/egui
-
+    fn create_top_menu(ctx: &Context) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
 
@@ -64,15 +43,32 @@ impl eframe::App for TemplateApp {
                 egui::widgets::global_dark_light_mode_buttons(ui);
             });
         });
+    }
 
+    fn create_central_panel(&mut self, ctx: &Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("eframe template");
+            ui.heading("Command pattern example");
 
             ui.horizontal(|ui| {
-                ui.label("Write something: ");
+                ui.label("What is 5 + 5?");
                 ui.text_edit_singleline(&mut self.label);
+                if ui.button("Check").clicked() {
+                    self.correct_answer = Some(10 == self.label.parse::<i32>().unwrap_or(0));
+                };
             });
+            if let Some(answer) = self.correct_answer {
+                let label_text = if answer {
+                    "Your answer was correct."
+                } else {
+                    "Your answer was wrong."
+                };
+                ui.label(label_text);
+            } else {
+                ui.label("");
+            }
+
+            ui.add_space(10.0);
 
             ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
             if ui.button("Increment").clicked() {
@@ -81,16 +77,25 @@ impl eframe::App for TemplateApp {
 
             ui.separator();
 
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/main/",
-                "Source code."
-            ));
-
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
-            });
+            Self::add_footer(ui);
         });
+    }
+
+    fn add_footer(ui: &mut Ui) {
+        ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+            powered_by_egui_and_eframe(ui);
+            egui::warn_if_debug_build(ui);
+        });
+    }
+}
+
+impl eframe::App for CommandPatternApp {
+
+    /// Called each time the UI needs repainting, which may be many times per second.
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        Self::create_top_menu(ctx);
+
+        self.create_central_panel(ctx);
     }
 }
 
