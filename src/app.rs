@@ -7,7 +7,8 @@ pub struct CommandPatternApp {
     pub(crate) label: String,
     pub(crate) correct_answer: Option<bool>,
     pub(crate) value: f32,
-    pub(crate) windows: Vec<WindowContent>, // this is not optimal, but better understandable then a map or a btree
+    pub(crate) window_id: usize,
+    pub(crate) open_windows: Vec<usize>, // this is not optimal, but better understandable then a map or a btree
 }
 
 #[derive(Clone)]
@@ -23,7 +24,8 @@ impl Default for CommandPatternApp {
             label: "Hello World!".to_owned(),
             correct_answer: None,
             value: 2.7,
-            windows: vec![],
+            open_windows: vec![],
+            window_id: 0,
         }
     }
 }
@@ -92,13 +94,20 @@ impl CommandPatternApp {
             ui.separator();
 
             if ui.button("Add window").clicked() {
-                self.handle_command(Command::CreateNewWindow(WindowContent::create(self.windows.len())));
+                self.handle_command(Command::CreateNewWindow(self.window_id));
+                self.window_id += 1;
             }
 
             self.draw_windows(ctx);
 
+            self.add_window_counter(ui);
+
             Self::add_footer(ui);
         });
+    }
+
+    fn add_window_counter(&mut self, ui: &mut Ui) {
+       ui.label(format!("{} windows open", self.open_windows.len()));
     }
 
     fn display_check_result(&mut self, ui: &mut Ui) {
@@ -115,13 +124,14 @@ impl CommandPatternApp {
     }
 
     fn draw_windows(&mut self, ctx: &Context) {
-        let windows_to_draw = self.windows.clone();
+        let windows_to_draw = self.open_windows.clone();
         let mut callback = |cmd: Command| self.handle_command(cmd);
-        windows_to_draw.iter().for_each(|content| {
+        windows_to_draw.iter().for_each(|id| {
+            let content = WindowContent::create(id.clone());
             create_window(
                 &mut callback,
                 ctx,
-                content,
+                &content,
             );
         });
     }

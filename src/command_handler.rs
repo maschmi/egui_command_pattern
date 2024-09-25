@@ -4,7 +4,7 @@ use crate::CommandPatternApp;
 pub(crate) enum Command {
     VerifyAnswer(String),
     IncrementByButton,
-    CreateNewWindow(WindowContent),
+    CreateNewWindow(usize),
     CloseWindow(usize),
     NoOP,
 }
@@ -26,11 +26,11 @@ impl CommandHandler for CommandPatternApp {
             }
             Command::CreateNewWindow(content) => {
                 dbg!("Handle create new window command");
-                self.windows.push(content.clone());
+                self.open_windows.push(content);
             }
             Command::CloseWindow(id) => {
                 dbg!("Handle close window command");
-                self.windows.retain(|w| &w.id != &id);
+                self.open_windows.retain(|w| w != &id);
             }
             Command::NoOP => {
                 dbg!("Handle noop command");
