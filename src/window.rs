@@ -1,28 +1,35 @@
-use egui::{Context, Id, Ui, Window};
 use crate::app::WindowContent;
-use crate::command_handler::{Command, CommandHandler};
-use crate::CommandPatternApp;
+use crate::command_handler::Command;
+use egui::{Context, Id, Ui, Window};
 
-impl CommandPatternApp {
-    pub(crate) fn create_window(&mut self, ctx: &Context, content: &WindowContent) {
-        Window::new("I'm a window")
-            .id(Id::new(content.id)) // needed as the title is the same
-            .show(ctx, |ui| {
-                ui.label(content.content.to_string());
-                self.add_close_button(content, ui);
-                self.add_noop_button(ui);
-            });
+
+pub(crate) fn create_window<F>(cmd_callback: F, ctx: &Context, content: &WindowContent)
+where
+    F: FnMut(Command),
+{
+    Window::new("I'm a window")
+        .id(Id::new(content.id)) // needed as the title is the same
+        .show(ctx, |ui| {
+            ui.label(content.content.to_string());
+            add_close_button(cmd_callback, content, ui);
+            add_noop_button(cmd_callback, ui);
+        });
+}
+
+fn add_close_button<F>(mut cmd_callback: F, content: &WindowContent, ui: &mut Ui)
+where
+    F: FnMut(Command),
+{
+    if ui.button("Close").clicked() {
+        cmd_callback(Command::CloseWindow(content.id));
     }
+}
 
-    fn add_close_button(&mut self, content: &WindowContent, ui: &mut Ui) {
-        if ui.button("Close").clicked() {
-            self.handle_command(Command::CloseWindow(content.id));
-        }
-    }
-
-    fn add_noop_button(&mut self, ui: &mut Ui) {
-        if ui.button("NoOP").clicked() {
-            self.handle_command(Command::NoOP);
-        }
+fn add_noop_button<F>(mut cmd_callback: F, ui: &mut Ui)
+where
+    F: FnMut(Command),
+{
+    if ui.button("NoOP").clicked() {
+        cmd_callback(Command::NoOP);
     }
 }
