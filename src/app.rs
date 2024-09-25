@@ -9,6 +9,7 @@ pub struct CommandPatternApp {
     pub(crate) value: f32,
     pub(crate) window_id: usize,
     pub(crate) open_windows: Vec<usize>, // this is not optimal, but better understandable then a map or a btree
+    pub(crate) cmd_to_run: Option<Command>
 }
 
 #[derive(Clone)]
@@ -26,6 +27,7 @@ impl Default for CommandPatternApp {
             value: 2.7,
             open_windows: vec![],
             window_id: 0,
+            cmd_to_run: None,
         }
     }
 }
@@ -78,7 +80,7 @@ impl CommandPatternApp {
                 ui.text_edit_singleline(&mut self.label);
                 if ui.button("Check").clicked() {
                     let value = self.label.clone();
-                    self.handle_command(Command::VerifyAnswer(value));
+                    self.cmd_to_run = Some(Command::VerifyAnswer(value));
                 };
             });
 
@@ -88,13 +90,13 @@ impl CommandPatternApp {
 
             ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
             if ui.button("Increment").clicked() {
-                self.handle_command(Command::IncrementByButton);
+                self.cmd_to_run = Some(Command::IncrementByButton);
             }
 
             ui.separator();
 
             if ui.button("Add window").clicked() {
-                self.handle_command(Command::CreateNewWindow(self.window_id));
+                self.cmd_to_run = Some(Command::CreateNewWindow(self.window_id));
                 self.window_id += 1;
             }
 
@@ -125,7 +127,7 @@ impl CommandPatternApp {
 
     fn draw_windows(&mut self, ctx: &Context) {
         let windows_to_draw = self.open_windows.clone();
-        let mut callback = |cmd: Command| self.handle_command(cmd);
+        let mut callback = |cmd: Command| self.cmd_to_run = Some(cmd);
         windows_to_draw.iter().for_each(|id| {
             let content = WindowContent::create(id.clone());
             create_window(
@@ -147,6 +149,9 @@ impl CommandPatternApp {
 impl eframe::App for CommandPatternApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if let Some(cmd) = &self.cmd_to_run {
+            self.handle_command(cmd.clone())
+        }
         Self::create_top_menu(ctx);
 
         self.create_central_panel(ctx);

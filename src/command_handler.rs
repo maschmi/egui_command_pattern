@@ -1,6 +1,7 @@
 use crate::app::WindowContent;
 use crate::CommandPatternApp;
 
+#[derive(Clone)]
 pub(crate) enum Command {
     VerifyAnswer(String),
     IncrementByButton,
@@ -36,5 +37,6 @@ impl CommandHandler for CommandPatternApp {
                 dbg!("Handle noop command");
             }
         }
+        self.cmd_to_run = None;
     }
 }
