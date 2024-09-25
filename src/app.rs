@@ -1,15 +1,17 @@
 use egui::{Context, Id, Ui, Window};
+use crate::command_handler::{Command, CommandHandler};
 
 pub struct CommandPatternApp {
     // Example stuff:
-    label: String,
-    correct_answer: Option<bool>,
-    value: f32,
-    windows: Vec<WindowContent>, // this is not optimal, but better understandable then a map or a btree
+    pub(crate) label: String,
+    pub(crate) correct_answer: Option<bool>,
+    pub(crate) value: f32,
+    pub(crate) windows: Vec<WindowContent>, // this is not optimal, but better understandable then a map or a btree
 }
+
 #[derive(Clone)]
-struct WindowContent {
-    id: usize,
+pub(crate) struct WindowContent {
+    pub(crate) id: usize,
     content: String,
 }
 
@@ -72,7 +74,8 @@ impl CommandPatternApp {
                 ui.label("What is 5 + 5?");
                 ui.text_edit_singleline(&mut self.label);
                 if ui.button("Check").clicked() {
-                    self.correct_answer = Some(10 == self.label.parse::<i32>().unwrap_or(0));
+                    let value = self.label.clone();
+                    self.handle_command(Command::VerifyAnswer(value));
                 };
             });
 
@@ -82,16 +85,13 @@ impl CommandPatternApp {
 
             ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
             if ui.button("Increment").clicked() {
-                self.value += 1.0;
+                self.handle_command(Command::IncrementByButton);
             }
 
             ui.separator();
 
             if ui.button("Add window").clicked() {
-                let content = WindowContent::create(
-                    self.windows.len(),
-                );
-                self.windows.push(content.clone());
+                self.handle_command(Command::CreateNewWindow(WindowContent::create(self.windows.len())));
             }
 
             self.draw_windows(ctx);
@@ -120,7 +120,7 @@ impl CommandPatternApp {
                 .show(ctx, |ui| {
                     ui.label(content.content.to_string());
                     if ui.button("Close").clicked() {
-                        self.windows.retain(|w| &w.id != &content.id);
+                        self.handle_command(Command::CloseWindow(content.id))
                     }
                 });
         });
