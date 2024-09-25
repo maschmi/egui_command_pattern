@@ -12,7 +12,7 @@ pub struct CommandPatternApp {
 #[derive(Clone)]
 pub(crate) struct WindowContent {
     pub(crate) id: usize,
-    content: String,
+    pub(crate) content: String,
 }
 
 impl Default for CommandPatternApp {
@@ -115,14 +115,10 @@ impl CommandPatternApp {
 
     fn draw_windows(&mut self, ctx: &Context) {
         self.windows.clone().iter().for_each(|content| {
-            Window::new("I'm a window")
-                .id(Id::new(content.id)) // needed as the title is the same
-                .show(ctx, |ui| {
-                    ui.label(content.content.to_string());
-                    if ui.button("Close").clicked() {
-                        self.handle_command(Command::CloseWindow(content.id))
-                    }
-                });
+            self.create_window(
+                ctx,
+                content
+            );
         });
     }
 
