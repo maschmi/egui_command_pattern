@@ -115,8 +115,8 @@ impl CommandPatternApp {
     }
 
     fn draw_windows(&mut self, ctx: &Context) {
-        let mut callback = |cmd: Command| self.handle_command(cmd);
         let windows_to_draw = self.windows.clone();
+        let mut callback = |cmd: Command| self.handle_command(cmd);
         windows_to_draw.iter().for_each(|content| {
             create_window(
                 &mut callback,
