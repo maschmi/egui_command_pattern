@@ -40,3 +40,32 @@ impl CommandHandler for CommandPatternApp {
         self.cmd_to_run = None;
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_answer_command_ok() {
+        let mut sut = CommandPatternApp::new();
+        assert_eq!(sut.correct_answer, None); // initial state
+        let cmd = Command::VerifyAnswer("10".to_string());
+
+        sut.handle_command(cmd);
+
+        assert_eq!(sut.correct_answer, Some(true));
+    }
+
+    #[test]
+    fn test_verify_answer_command_not_ok() {
+        let mut sut = CommandPatternApp::new();
+        assert_eq!(sut.correct_answer, None); // initial state
+        let cmd = Command::VerifyAnswer("ten".to_string());
+
+        sut.handle_command(cmd);
+
+        assert_eq!(sut.correct_answer, Some(false));
+    }
+
+}
